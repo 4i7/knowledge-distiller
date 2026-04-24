@@ -42,7 +42,7 @@ The skill installs to `~/.hermes/skills/knowledge-distiller` by default.
 
 ```bash
 # Required: point to your Obsidian/LLM-Wiki vault
-export WIKI_PATH="/path/to/your/obsidian/vault"
+export WIKI_PATH="/path/to/your/obsidian vault"
 
 # Optional overrides
 export HERMES_KB_DIR="/custom/kb/path"          # explicit KB location
