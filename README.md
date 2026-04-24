@@ -1,6 +1,6 @@
 # knowledge-distiller
 
-A meta-skill for [Hermes-Agent](https://github.com/Leoleojames1/Hermes-Agent) that gives local LLMs persistent, searchable memory across sessions.
+A meta-skill for [Hermes-Agent](https://github.com/NousResearch/hermes-agent) that gives local LLMs persistent, searchable memory across sessions.
 
 The goal is simple: **never solve the same problem twice, never look up the same environment twice.**
 
