@@ -1,3 +1,4 @@
+This is a test of AI-generated content.
 # knowledge-distiller
 
 A meta-skill for [Hermes-Agent](https://github.com/NousResearch/hermes-agent) that gives local LLMs persistent, searchable memory across sessions.
