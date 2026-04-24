@@ -1,0 +1,201 @@
+{
+  "skill_name": "knowledge-distiller",
+  "description_version": 1,
+  "notes": "Behavior verification suite for the knowledge-distiller meta-skill. 8 cases across three categories: trigger_search, trigger_store, and negative. Prompts use natural Japanese/English mixed text representative of real Hermes-Agent users. Qualitative evaluation is primary; quantitative assertions are secondary.",
+  "evals": [
+    {
+      "id": 1,
+      "kind": "trigger_search",
+      "prompt": "さっきからtorchrunで8ノード分散学習始めようとしてるんだけど、30分くらい経つとRANK 6と7だけNCCL timeout after 1800000ms って出てプロセス落ちる。昨日はこんなの出なかった気がするんだよな…似たようなやつ前に解いた記憶ある？環境はA100 80G×8 のDGX 2ノード、IB HDR結線、cuda 12.1 / torch 2.3。",
+      "expected_output":"Trigger: YES (error paste + reference to past experience, explicit environment info). Ideal behavior: call scripts/search_knowledge.py with --query containing 'NCCL timeout DDP' vocabulary, --category error_resolution, and --tags covering nccl/ddp/networking. If hits are found, read solution_steps and surface the delta from the current environment.",
+      "assertions": [
+        {
+          "name": "triggers_skill",
+          "check": "Response references knowledge-distiller or invokes scripts/search_knowledge.py"
+        },
+        {
+          "name": "search_before_diagnose",
+          "check": "Past knowledge is searched before web search or speculative diagnosis"
+        },
+        {
+          "name": "query_quality",
+          "check": "--query contains specific error vocabulary (NCCL/timeout/DDP etc.) without volatile parts like paths or PIDs"
+        },
+        {
+          "name": "category_filter",
+          "check": "--category error_resolution is specified"
+        },
+        {
+          "name": "environment_diff_check",
+          "check": "If hits are found, environment fields (gpu/cuda/node_count) are compared against the current environment"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "kind": "trigger_store",
+      "prompt": "おー、NCCL_SOCKET_IFNAME=eth0 を env に入れたら無事起動した、ありがとう！さっきのやつ、確かbond0が悪さしてたんだよね。解決した。",
+      "expected_output":"Trigger: YES (explicit success declaration + identified root cause). Ideal behavior: call scripts/update_knowledge.py with category=error_resolution, outcome=success, confidence>=0.85. If a similar past record exists, propose --merge-with.",
+      "assertions": [
+        {
+          "name": "triggers_store",
+          "check": "update_knowledge.py is called or skill invocation is mentioned"
+        },
+        {
+          "name": "category_correct",
+          "check": "Saved with category=error_resolution"
+        },
+        {
+          "name": "structured_solution_steps",
+          "check": "Each solution_steps entry contains both action and rationale"
+        },
+        {
+          "name": "confidence_high",
+          "check": "confidence >= 0.8 (user explicitly confirmed success)"
+        },
+        {
+          "name": "outcome_success",
+          "check": "outcome=success"
+        },
+        {
+          "name": "no_volatile_in_env",
+          "check": "environment fields contain no transient values such as PIDs or absolute paths"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "kind": "trigger_search",
+      "prompt": "vLLMでLlama-3-70Bを4枚のA100で動かしたいんだけど、前に似たようなこと設定した記憶ある。当時のconfig確認できる？",
+      "expected_output":"Trigger: YES (request to reproduce a past configuration). Ideal: search with --category model_config or environment_setup, --tags covering vllm/inference/llama3.",
+      "assertions": [
+        {
+          "name": "triggers_skill",
+          "check": "knowledge-distiller is invoked for the search"
+        },
+        {
+          "name": "query_has_model_name",
+          "check": "Query contains specific identifiers such as 'vllm' or 'llama'"
+        },
+        {
+          "name": "relevant_category",
+          "check": "--category is model_config or environment_setup"
+        },
+        {
+          "name": "shows_past_config",
+          "check": "If a hit is found, model_config and environment fields are presented explicitly"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "kind": "trigger_search_casual",
+      "prompt": "これ前にも見た気がするエラーなんだよな…\n\nImportError: /opt/conda/lib/libstdc++.so.6: version `GLIBCXX_3.4.30' not found (required by /usr/local/lib/python3.11/site-packages/torch/lib/libtorch_cpu.so)",
+      "expected_output":"Trigger: YES (casual 'seen this before' + error paste). Must trigger even with informal phrasing. Query should use the invariant skeleton: 'GLIBCXX libstdc++ torch ImportError', --category error_resolution.",
+      "assertions": [
+        {
+          "name": "triggers_skill",
+          "check": "Skill triggers despite casual phrasing"
+        },
+        {
+          "name": "query_excludes_volatile",
+          "check": "--query does not contain absolute paths like /opt/conda/..."
+        },
+        {
+          "name": "strips_paths",
+          "check": "Query is built from library names and error type, not from volatile path/version tokens"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "kind": "negative_near_miss",
+      "prompt": "この会話、前回の続きだったよね。そのとき俺が好きって言ってたラーメン屋の名前、覚えてる？",
+      "expected_output":"Trigger: NO. This is a personal conversation history reference unrelated to Hermes-Agent's technical knowledge base. Should route to conversation_search or memory rather than knowledge-distiller.",
+      "assertions": [
+        {
+          "name": "does_not_trigger",
+          "check": "knowledge-distiller skill is NOT triggered"
+        },
+        {
+          "name": "correct_tool_routing",
+          "check": "Routes to conversation_search, memory tools, or states the information is unavailable"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 6,
+      "kind": "negative_generic",
+      "prompt": "Pythonでリストの重複を除く一番pythonicな書き方教えて",
+      "expected_output":"Trigger: NO. Answerable directly from general Python knowledge; no environment context or past experience required.",
+      "assertions": [
+        {
+          "name": "does_not_trigger",
+          "check": "knowledge-distiller is NOT triggered"
+        },
+        {
+          "name": "answers_directly",
+          "check": "Answered as general Python knowledge without consulting the KB"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 7,
+      "kind": "trigger_store_negative_knowledge",
+      "prompt": "FlashAttention-2をPyTorch 2.0.1で動かそうとしたら illegal memory access が出続けて、結局PyTorch 2.1に上げるしかなかった。ちょっとハマったから記録しといて。",
+      "expected_output":"Trigger: YES (explicit save request). category=error_resolution, outcome=success (ultimately resolved), confidence ~0.85. Negative knowledge — 'does not work below 2.1' — must be captured in summary or solution_steps.",
+      "assertions": [
+        {
+          "name": "triggers_store",
+          "check": "update_knowledge.py is invoked"
+        },
+        {
+          "name": "captures_failed_approach",
+          "check": "summary or solution_steps clearly states PyTorch 2.0.x does not work"
+        },
+        {
+          "name": "version_info_saved",
+          "check": "environment.frameworks records the pytorch version"
+        },
+        {
+          "name": "tags_include_version_mismatch",
+          "check": "tags include 'version_mismatch' and 'flash_attention' or similar"
+        }
+      ],
+      "files": []
+    },
+    {
+      "id": 8,
+      "kind": "negative_adjacent",
+      "prompt": "Anthropicが最近出したClaude 4.7 Opusってどういう改善があったの？料金も教えて。",
+      "expected_output":"Trigger: NO. This belongs to web search or a product-knowledge skill. Unrelated to Hermes-Agent's own past sessions.",
+      "assertions": [
+        {
+          "name": "does_not_trigger",
+          "check": "knowledge-distiller is NOT triggered"
+        },
+        {
+          "name": "uses_web_or_product_skill",
+          "check": "Routes to web_search or a product knowledge skill"
+        }
+      ],
+      "files": []
+    }
+  ],
+  "quantitative_metrics": {
+    "trigger_accuracy": "Trigger rate on cases that should fire (1,2,3,4,7) vs. non-trigger rate on cases that should not (5,6,8)",
+    "assertion_pass_rate": "Pass rate across all assertion items",
+    "schema_validity": "Rate at which script arguments and JSON inputs generated by the agent pass schema validation"
+  },
+  "execution_notes": {
+    "environment": "Claude.ai VM (Python 3.11+, no subagents, no browser display)",
+    "kb_dir_for_test": "/tmp/hermes_kb_eval",
+    "pre_seed": "Seed the KB with the three canonical examples from references/schema.md §7 before running evals, so cases 1 and 3 have existing hits to find."
+  }
+}

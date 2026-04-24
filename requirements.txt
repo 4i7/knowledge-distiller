@@ -1,0 +1,9 @@
+# knowledge-distiller — Python dependencies
+#
+# Core scripts run on stdlib only (Python 3.9+). No packages are required.
+#
+# Optional: semantic reranking with sentence-transformers
+# Install to activate automatic embedding-based reranking of search results.
+# Without it, TF-IDF ranking is used (still effective for most workloads).
+#
+# sentence-transformers>=2.2.0
