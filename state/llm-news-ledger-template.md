@@ -123,9 +123,9 @@ Not a hard delta by itself:
 
 ## Scheduled-task writeback protocol
 
-At the end of each scheduled report:
+Before emitting the final scheduled report:
 
-1. Re-fetch `state/llm-news-seen.jsonl` immediately before writing, so the latest blob SHA is used.
+1. Re-fetch `state/llm-news-seen.jsonl` immediately before writeback, so the latest blob SHA is used.
 2. Merge new or updated topic records.
 3. Preserve every existing record and field unless intentionally updating:
    - `last_seen_jst`
