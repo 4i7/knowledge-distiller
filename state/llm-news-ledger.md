@@ -67,7 +67,7 @@ Each scheduled LLM News task must do the following:
    - `ONGOING_NO_NEWS`
    - `UNCONFIRMED_SIGNAL`
 5. Include only `NEW`, strong `FOLLOW_UP`, and high-signal labeled `UNCONFIRMED_SIGNAL` in the main report.
-6. After writing the report, update `llm-news-seen.jsonl` and this MD file.
+6. Before emitting the final report, update `llm-news-seen.jsonl` and this MD file based on the selected topics and duplicate decisions.
 7. If GitHub ledger read/write fails, explicitly state the failure in `検索・判定メモ` and do not pretend that historical duplicate checking succeeded.
 
 ## File ownership
